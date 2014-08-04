@@ -19,6 +19,8 @@
 
 - (CGSize)sizeForNumberOfPages:(NSInteger)pageCount;   // returns minimum size required to display dots for given page count. can be used to size control if page count could change
 
+- (void)setCurrentPage:(NSInteger)currentPage animated:(BOOL)animated;
+
 @property(nonatomic,retain) UIColor *pageIndicatorTintColor UI_APPEARANCE_SELECTOR;
 @property(nonatomic,retain) UIColor *currentPageIndicatorTintColor UI_APPEARANCE_SELECTOR;
 
