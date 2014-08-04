@@ -29,6 +29,7 @@
     self.uiPageControl = [[UIPageControl alloc] initWithFrame:CGRectMake(10, 100, 300, 20)];
     self.uiPageControl.backgroundColor = [UIColor redColor];
     self.uiPageControl.numberOfPages = 3;
+    [self.uiPageControl addTarget:self action:@selector(uiPageControlValueChanged:) forControlEvents:UIControlEventValueChanged];
     [self.view addSubview:self.uiPageControl];
 }
 
@@ -37,4 +38,13 @@
     // Dispose of any resources that can be recreated.
 }
 
+- (void)uiPageControlValueChanged:(id)sender
+{
+    BOOL animated = YES;
+    if (animated) {
+        [self.pageControl setCurrentPage:self.uiPageControl.currentPage + 1 animated:animated];
+    } else {
+        self.pageControl.currentPage = self.uiPageControl.currentPage + 1;
+    }
+}
 @end

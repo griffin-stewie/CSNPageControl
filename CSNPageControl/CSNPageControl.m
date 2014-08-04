@@ -58,7 +58,7 @@ UIColor *CSNRandomColor()
 {
     self = [super initWithFrame:frame];
     if (self) {
-        self.currentPage = 1;
+        _currentPage = 1;
     }
 
     return self;
@@ -78,6 +78,22 @@ UIColor *CSNRandomColor()
         }
         
         [self updatePageIndicatorWithPages:_numberOfPages];
+    }
+}
+
+- (void)setCurrentPage:(NSInteger)currentPage
+{
+    [self setCurrentPage:currentPage animated:NO];
+}
+
+- (void)setCurrentPage:(NSInteger)currentPage animated:(BOOL)animated
+{
+    NSInteger page = _currentPage;
+    if (_currentPage != currentPage) {
+        if (0 <= currentPage && currentPage <= self.numberOfPages) {
+            _currentPage = currentPage;
+            [self updatePageIndicatorWithDiff:page - _currentPage animated:animated];
+        }
     }
 }
 
@@ -169,7 +185,7 @@ UIColor *CSNRandomColor()
     return frame;
 }
 
-- (void)modifyAsCurrentIndicatorShape:(CSNIndicatorView *)indicatorView direction:(CSNPageControlAnimationDirection)direction
+- (void)modifyAsCurrentIndicatorShape:(CSNIndicatorView *)indicatorView direction:(CSNPageControlAnimationDirection)direction animated:(BOOL)animated
 {
     if (indicatorView == nil) {
         return ;
@@ -177,19 +193,23 @@ UIColor *CSNRandomColor()
 
     indicatorView.highlighted = YES;
     
-    [UIView animateWithDuration:0.2 delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
+    void(^changeFrame)() = ^ {
         CGRect frame = indicatorView.frame;
         frame.size = [self currentIndicatorSize];
         if (direction == CSNPageControlAnimationDirectionLeft) {
             frame.origin.x -= kExpandWidth;
         }
         indicatorView.frame = frame;
-    } completion:^(BOOL finished) {
-        
-    }];
+    };
+    
+    if (animated) {
+        [UIView animateWithDuration:0.2 delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:changeFrame completion:NULL];
+    } else {
+        changeFrame();
+    }
 }
 
-- (void)modifyAsDeselctedIndicatorShape:(CSNIndicatorView *)indicatorView direction:(CSNPageControlAnimationDirection)direction
+- (void)modifyAsDeselctedIndicatorShape:(CSNIndicatorView *)indicatorView direction:(CSNPageControlAnimationDirection)direction animated:(BOOL)animated
 {
     if (indicatorView == nil) {
         return ;
@@ -197,16 +217,20 @@ UIColor *CSNRandomColor()
 
     indicatorView.highlighted = NO;
 
-    [UIView animateWithDuration:0.2 delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
+    void(^changeFrame)() = ^ {
         CGRect frame = indicatorView.frame;
         frame.size = [self defaultIndicatorSize];
         if (direction == CSNPageControlAnimationDirectionRight) {
             frame.origin.x += kExpandWidth;
         }
         indicatorView.frame = frame;
-    } completion:^(BOOL finished) {
+    };
 
-    }];
+    if (animated) {
+        [UIView animateWithDuration:0.2 delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:changeFrame completion:NULL];
+    } else {
+        changeFrame();
+    }
 }
 
 - (void)updatePageIndicatorWithPages:(NSInteger)numberOfPages
@@ -244,7 +268,7 @@ UIColor *CSNRandomColor()
     [self addSubview:self.indicatorBaseView];
 }
 
-- (void)animateWithPageDiff:(NSInteger)diff
+- (void)updatePageIndicatorWithDiff:(NSInteger)diff animated:(BOOL)animated
 {
     NSInteger currentPageIndex = (self.currentPage - 1);
 
@@ -264,13 +288,13 @@ UIColor *CSNRandomColor()
     if (diff > 0) {
         // to left
 //        NSLog(@"%s %@", __PRETTY_FUNCTION__, @"Left animation");
-        [self modifyAsCurrentIndicatorShape:toBeCurrentIndicator direction:CSNPageControlAnimationDirectionRight];
-        [self modifyAsDeselctedIndicatorShape:rightSideOfCurrentIndicator direction:CSNPageControlAnimationDirectionRight];
+        [self modifyAsCurrentIndicatorShape:toBeCurrentIndicator direction:CSNPageControlAnimationDirectionRight animated:animated];
+        [self modifyAsDeselctedIndicatorShape:rightSideOfCurrentIndicator direction:CSNPageControlAnimationDirectionRight animated:animated];
     } else {
         // to right
 //        NSLog(@"%s %@", __PRETTY_FUNCTION__, @"Right animation");
-        [self modifyAsCurrentIndicatorShape:toBeCurrentIndicator direction:CSNPageControlAnimationDirectionLeft];
-        [self modifyAsDeselctedIndicatorShape:leftSideOfCurrentIndicator direction:CSNPageControlAnimationDirectionLeft];
+        [self modifyAsCurrentIndicatorShape:toBeCurrentIndicator direction:CSNPageControlAnimationDirectionLeft animated:animated];
+        [self modifyAsDeselctedIndicatorShape:leftSideOfCurrentIndicator direction:CSNPageControlAnimationDirectionLeft animated:animated];
     }
 }
 
@@ -308,9 +332,7 @@ UIColor *CSNRandomColor()
 //            NSLog(@"%s %@", __PRETTY_FUNCTION__, @"Left");
 
             if (self.currentPage != 1) {
-                NSInteger page = self.currentPage;
-                self.currentPage = self.currentPage - 1;
-                [self animateWithPageDiff:page - self.currentPage];
+                [self setCurrentPage:self.currentPage - 1 animated:YES];
                 [self sendActionsForControlEvents:UIControlEventValueChanged];
             }
 
@@ -319,9 +341,7 @@ UIColor *CSNRandomColor()
 //            NSLog(@"%s %@", __PRETTY_FUNCTION__, @"Right");
 
             if (self.numberOfPages != self.currentPage) {
-                NSInteger page = self.currentPage;
-                self.currentPage = self.currentPage + 1;
-                [self animateWithPageDiff:page - self.currentPage];
+                [self setCurrentPage:self.currentPage + 1 animated:YES];
                 [self sendActionsForControlEvents:UIControlEventValueChanged];
             }
         }
